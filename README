@@ -69,6 +69,8 @@ Python 2.5.  May work on Python 2.4 with minor tweaks.
 
 = Changes =
 
+2010-12-13 v1.4d
+* Performance improvements - Vincent Povirk
 2009-12-12 v1.4c
 * Use hashlib module instead of deprecated sha module - Ronan Sheth
 * Added --folders argument - Giuseppe Scrivano

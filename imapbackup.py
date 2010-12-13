@@ -1,12 +1,13 @@
 #!/usr/bin/env python
- 
-"""IMAP Incremental Backup Script  v.1.4c (Dec 12 2009)  found on http://the.taoofmac.com/space/Projects/imapbackup"""
-__version__ = "1.4c"
+
+"""IMAP Incremental Backup Script"""
+__version__ = "1.4d"
 __author__ = "Rui Carmo (http://the.taoofmac.com)"
-__copyright__ = "(C) 2006 Rui Carmo. Code under BSD License.\n(C)"
-__contributors__ = "Bob Ippolito, Michael Leonhard, Giuseppe Scrivano <gscrivano@gnu.org>, Ronan Sheth, Brandon Long"
- 
+__copyright__ = "(C) 2006 Rui Carmo. Code under BSD License."
+__contributors__ = "Bob Ippolito, Michael Leonhard, Giuseppe Scrivano <gscrivano@gnu.org>, Ronan Sheth, Brandon Long, Vincent Povirk"
+
 # = Contributors =
+# Vincent Povirk: patch with performance improvements
 # Brandon Long (Gmail team): Reminder to use BODY.PEEK instead of BODY
 # Ronan Sheth: hashlib patch (this now requires Python 2.5, although reverting it back is trivial)
 # Giuseppe Scrivano: Added support for folders.
@@ -198,9 +199,7 @@ def scan_file(filename, compress, overwrite):
     header = BLANKS_RE.sub(' ', header.strip())
     try:
       msg_id = MSGID_RE.match(header).group(1)
-      if msg_id not in messages.keys():
-        # avoid adding dupes
-        messages[msg_id] = msg_id
+      messages[msg_id] = msg_id
     except AttributeError:
       # Message-Id was found but could somehow not be parsed by regexp
       # (highly bloody unlikely)
@@ -213,7 +212,7 @@ def scan_file(filename, compress, overwrite):
   # done
   mbox.close()
   spinner.stop()
-  print ": %d messages" % (len(messages.keys()))
+  print ": %d messages" % (len(messages))
   return messages
  
 def scan_folder(server, foldername):
@@ -237,10 +236,8 @@ def scan_folder(server, foldername):
       # remove newlines inside Message-Id (a dumb Exchange trait)
       header = BLANKS_RE.sub(' ', header)
       try:
-        msg_id = MSGID_RE.match(header).group(1) 
-        if msg_id not in messages.keys():
-          # avoid adding dupes
-          messages[msg_id] = num
+        msg_id = MSGID_RE.match(header).group(1)
+        messages[msg_id] = num
       except (IndexError, AttributeError):
         # Some messages may have no Message-Id, so we'll synthesise one
         # (this usually happens with Sent, Drafts and .Mac news)
@@ -256,7 +253,7 @@ def scan_folder(server, foldername):
     print ":",
  
   # done
-  print "%d messages" % (len(messages.keys()))
+  print "%d messages" % (len(messages))
   return messages
  
 def parse_paren_list(row):
