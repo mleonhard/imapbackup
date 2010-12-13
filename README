@@ -1,10 +1,10 @@
 IMAP Backup Tool
+http://github.com/mleonhard/imapbackup
+http://tamale.net/imapbackup/
 
 This program incrementally backs up IMAP folders to local mbox
-files. New messages are appended to the folder's mbox file. It is a
-Python program, originally by Rui Carmo
-(http://the.taoofmac.com/space/Projects/imapbackup). I have updated it
-extensively.
+files. New messages are appended to the folder's mbox file.
+
 
 = Features =
 
@@ -15,64 +15,8 @@ extensively.
 * IMAP4 SSL, supporting client and server certificates
 * Accesses IMAP account in read-only mode. Does not affect message 'seen' status.
 
-= Bugs =
 
-Imapbackup-1.4b and previous versions use the Python imap module. This
-module triggers a bug in socket.read() and
-sslobj.read(). Imapbackup.py works around the bug in socket.read() by
-replacing the function with a patched version. The patch is very
-simple. Unfortunately, the Python ssl module is implemented in C and
-is therefore more difficult to patch at run-time. Here is the error
-that sometimes occurs:
-
-File INBOX.mbox: 682 messages
-Downloading 85 new messages to INBOX.mbox /Traceback (most recent call last):
-  File "imapbackup.py", line 650, in <module>
-    main()
-  File "imapbackup.py", line 566, in main
-    download_messages(server, filename, new_messages, config)
-  File "imapbackup.py", line 143, in download_messages
-    typ, data = server.fetch(messages[msg_id], "RFC822")
-  File "c:\Python25\lib\imaplib.py", line 437, in fetch
-    typ, dat = self._simple_command(name, message_set, message_parts)
-  File "c:\Python25\lib\imaplib.py", line 1055, in _simple_command
-    return self._command_complete(name, self._command(name, *args))
-  File "c:\Python25\lib\imaplib.py", line 885, in _command_complete
-    typ, data = self._get_tagged_response(tag)
-  File "c:\Python25\lib\imaplib.py", line 986, in _get_tagged_response
-    self._get_response()
-  File "c:\Python25\lib\imaplib.py", line 948, in _get_response
-    data = self.read(size)
-  File "c:\Python25\lib\imaplib.py", line 1150, in read
-    data = self.sslobj.read(size-read)
-MemoryError
-
-= Change Log =
-
-2007-05-28 Version 1.4a:
-* SSL support! Can use a private key file and server certificate chain file.
-  Unfortunately, Python's ssl module doesn't check the certificate chain. This
-  needs to be fixed.
-* You can now specify the port number as part of the server name. Example:
-  imapbackup.py -u user -s mail.com:1234
-* Cleaned up code. Used pylint to find code that didn't comply with best
-   practices.
-2007-05-27 Version 1.3b:
-* Fixed bug in error message printout.
-2007-05-26 Version 1.3a:
-* Better support for result of LIST command. Fixes the problem of some folders
-  not getting backed up from Courier IMAPd
-* Improved usage printout, made parameters more consistent.
-* Added support for socket._fileobject.recv bugfix on Windows
-2007-03-27 Version 1.2e by Rui Carmo
-* See http://the.taoofmac.com/space/Projects/imapbackup
-
-= Compatibility =
-
-I've tested it on Python 2.4.4 and Python 2.5.1 on Windows,
-downloading from a Courier IMAP server 4.1.1 on Linux.
-
-Usage
+= Usage =
 
 Usage: imapbackup [OPTIONS] -s HOST -u USERNAME [-p PASSWORD]
  -a --append-to-mboxes     Append new messages to mbox files. (default)
@@ -80,6 +24,7 @@ Usage: imapbackup [OPTIONS] -s HOST -u USERNAME [-p PASSWORD]
  -n --compress=none        Use one plain mbox file for each folder. (default)
  -z --compress=gzip        Use mbox.gz files.  Appending may be very slow.
  -b --compress=bzip2       Use mbox.bz2 files. Appending not supported: use -y.
+ -f --=folder              Specifify which folders use.  Comma separated list.
  -e --ssl                  Use SSL.  Port defaults to 993.
  -k KEY --key=KEY          PEM private key file for SSL.  Specify cert, too.
  -c CERT --cert=CERT       PEM certificate chain for SSL.  Specify key, too.
@@ -89,37 +34,65 @@ Usage: imapbackup [OPTIONS] -s HOST -u USERNAME [-p PASSWORD]
  -p PASS --pass=PASS       Prompts for password if not specified.
 
 NOTE: mbox files are created in the current working directory.
-Example
 
-C:\imapbackup>imapbackup.py -u mleonhard -s fyodor.hcoop.net -e
+
+= Example =
+
+$ python imapbackup.py -s shevek.tamale.net -u michael -e -f INBOX
 Password:
-Connecting to 'fyodor.hcoop.net' TCP port 993, SSL
-Logging in as 'mleonhard'
-Finding Folders: 60 folders
-Folder shared: SELECT failed: ['Mailbox does not exist, or must be subscribed to
-.']
-Folder shared.SpamAssassin: SELECT failed: ['Mailbox does not exist, or must be
-subscribed to.']
-Folder INBOX: 449 messages
+Connecting to 'shevek.tamale.net' TCP port 993, SSL
+Logging in as 'michael'
+Finding Folders: 67 folders
+Folder INBOX: 1231 messages
+File INBOX.mbox /
+WARNING: Message #117 in INBOX.mbox has a malformed Message-Id header.
 File INBOX.mbox -
-WARNING: Message #138 in INBOX.mbox has a malformed Message-Id header.
-File INBOX.mbox |
-WARNING: Message #172 in INBOX.mbox has a malformed Message-Id header.
+WARNING: Message #269 in INBOX.mbox has a malformed Message-Id header.
 File INBOX.mbox -
-WARNING: Message #310 in INBOX.mbox has a malformed Message-Id header.
+WARNING: Message #498 in INBOX.mbox has a malformed Message-Id header.
+File INBOX.mbox /
+WARNING: Message #609 in INBOX.mbox has a malformed Message-Id header.
 File INBOX.mbox |
-WARNING: Message #456 in INBOX.mbox has a malformed Message-Id header.
-File INBOX.mbox: 448 messages
-Downloading 9 new messages to INBOX.mbox: 50.38 KB total, 9.77 KB for largest me
-ssage
-Folder INBOX.Sent: 356 messages
-File INBOX.Sent.mbox: 356 messages
-New messages: 0
-Folder INBOX.Trash: 7 messages
-File INBOX.Trash.mbox: 16 messages
-New messages: 0
-Folder INBOX.Drafts: 11 messages
-File INBOX.Drafts.mbox: 12 messages
-New messages: 0
+WARNING: Message #976 in INBOX.mbox has a malformed Message-Id header.
+File INBOX.mbox -
+WARNING: Message #1042 in INBOX.mbox has a malformed Message-Id header.
+File INBOX.mbox: 1230 messages
+Downloading 1 new messages to INBOX.mbox: 1.89 KB total, 1.89 KB for largest message
 Disconnecting
-C:\imapbackup>_
+$
+
+
+= Compatibility =
+
+Python 2.5.  May work on Python 2.4 with minor tweaks.
+
+
+= Changes =
+
+2009-12-12 v1.4c
+* Use hashlib module instead of deprecated sha module - Ronan Sheth
+* Added --folders argument - Giuseppe Scrivano
+* imapbackup disappeared from Rui Carmo's site.  This version found at:
+  https://gist.github.com/raw/273418/fe7c59f69ba57c40dde8c8c33d6105f46f458df8/imapbackup.py
+2008-12-08 v1.4b
+* Fetch with BODY.PEEK instead of BODY, to avoid marking Gmail messages as
+  read - Brandon Long (Gmail team)
+2007-05-28 v1.4a
+* SSL support! Can use a private key file and server certificate chain file.
+  Unfortunately, Python's ssl module doesn't check the certificate chain. This
+  needs to be fixed.
+* You can now specify the port number as part of the server name. Example:
+  imapbackup.py -u user -s mail.com:1234
+* Cleaned up code. Used pylint to find code that didn't comply with best
+   practices.
+2007-05-27 v1.3b
+* Fixed bug in error message printout.
+2007-05-26 v1.3a
+* Better support for result of LIST command. Fixes the problem of some folders
+  not getting backed up from Courier IMAPd
+* Improved usage printout, made parameters more consistent.
+* Added support for socket._fileobject.recv bugfix on Windows
+2007-03-27 v1.2e
+* By Rui Carmo.  Downloaded from:
+  http://the.taoofmac.com/space/Projects/imapbackup
+  http://web.archive.org/web/20071011040436/http://the.taoofmac.com/space/Projects/imapbackup
